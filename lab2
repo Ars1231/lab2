@@ -1,0 +1,150 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+using namespace std;
+
+class BoolVector {
+private:
+    bool* data;      
+    int size;       
+
+public:
+    BoolVector() : data(nullptr), size(0) {}
+    BoolVector(int n) : size(n) {
+        data = new bool[n];
+        for (int i = 0; i < n; i++) {
+            data[i] = false;
+        }
+    }
+
+    BoolVector(bool* arr, int n) : size(n) {
+        data = new bool[n];
+        for (int i = 0; i < n; i++) {
+            data[i] = arr[i];
+        }
+    }
+
+    BoolVector(const BoolVector& other) : size(other.size) {
+        data = new bool[size];
+        for (int i = 0; i < size; i++) {
+            data[i] = other.data[i];
+        }
+    }
+
+    BoolVector(BoolVector&& other) noexcept {
+        data = other.data;
+        size = other.size;
+        other.data = nullptr;
+        other.size = 0;
+    }
+
+    ~BoolVector() {
+        if (data != nullptr) {
+            delete[] data;
+        }
+    }
+
+    BoolVector& operator=(const BoolVector& other) {
+        if (this != &other) {
+            if (data != nullptr) {
+                delete[] data;
+            }
+            size = other.size;
+            data = new bool[size];
+            for (int i = 0; i < size; i++) {
+                data[i] = other.data[i];
+            }
+        }
+        return *this;
+    }
+
+    BoolVector& operator=(BoolVector&& other) noexcept {
+        if (this != &other) {
+            if (data != nullptr) {
+                delete[] data;
+            }
+            data = other.data;
+            size = other.size;
+            other.data = nullptr;
+            other.size = 0;
+        }
+        return *this;
+    }
+
+    bool& operator[](int index) {
+        if (index < 0 || index >= size) {
+            throw out_of_range("индекс");
+        }
+        return data[index];
+    }
+
+    friend ostream& operator<<(ostream& os, const BoolVector& vec) {
+        os << "[ ";
+        for (int i = 0; i < vec.size; i++) {
+            os << vec.data[i] << " ";
+        }
+        os << "]";
+        return os;
+    }
+
+    friend istream& operator>>(istream& is, BoolVector& vec) {
+        for (int i = 0; i < vec.size; i++) {
+            is >> vec.data[i];
+        }
+        return is;
+    }
+
+    friend BoolVector operator^(const BoolVector& v1, const BoolVector& v2) {
+        if (v1.size != v2.size) {
+            throw invalid_argument("неправильные размеры векторов");
+        }
+        BoolVector result(v1.size);
+        for (int i = 0; i < v1.size; i++) {
+            result.data[i] = v1.data[i] ^ v2.data[i];
+        }
+        return result;
+    }
+
+    friend BoolVector operator^(const BoolVector& v1, bool* arr) {
+        BoolVector result(v1.size);
+        for (int i = 0; i < v1.size; i++) {
+            result.data[i] = v1.data[i] ^ arr[i];
+        }
+        return result;
+    }
+
+    friend BoolVector operator^(bool* arr, const BoolVector& v2) {
+        return v2 ^ arr;
+    }
+};
+
+int main() {
+    ifstream input("input.txt");
+    ofstream output("output.txt");
+    int size;
+    input >> size;
+    bool* arr1 = new bool[size];
+    bool* arr2 = new bool[size];
+    for (int i = 0; i < size; i++) {
+        input >> arr1[i];
+    }
+    for (int i = 0; i < size; i++) {
+        input >> arr2[i];
+    }
+
+    BoolVector v1(arr1, size);
+    BoolVector v2(arr2, size);
+    BoolVector result1 = v1 ^ v2;
+    BoolVector result2 = v1 ^ arr2;
+    BoolVector result3 = arr1 ^ v2;
+    output << "V1: " << v1 << endl;
+    output << "V2: " << v2 << endl;
+    output << "v1 ^ v2: " << result1 << endl;
+    output << "v1 ^ arr2: " << result2 << endl;
+    output << "arr1 ^ v2: " << result3 << endl;
+    delete[] arr1;
+    delete[] arr2;
+    input.close();
+    output.close();
+    return 0;
+}
